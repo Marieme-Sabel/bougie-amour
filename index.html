@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Une lettre pour toi</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4e7dd;--paper:#fff8ec;--ink:#5a1f2b;--accent:#b3264a;--muted:#8a6a6f;--glow:rgba(255,170,60,.55)}
+@media (prefers-color-scheme:dark){:root{--bg:#120a0c;--paper:#f6e7cf;--ink:#4a1623;--accent:#ff6b8a;--muted:#b49a9f}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--muted);font-family:Georgia,serif;display:flex;flex-direction:column;align-items:center;padding:24px 16px;overflow-x:hidden;transition:background 1.5s}
+body.lit{background:radial-gradient(ellipse at 50% 75%,#3a1a14 0%,var(--bg) 65%)}
+h1{font-family:"Dancing Script",cursive;font-weight:700;color:var(--accent);margin:0 0 12px;font-size:2rem;text-align:center}
+.letter{position:relative;width:min(92vw,460px);min-height:300px;padding:28px 26px;background:var(--paper);border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.35);color:var(--ink);--r:0%;
+-webkit-mask-image:radial-gradient(circle at 50% 108%,#000 var(--r),transparent calc(var(--r) + 28%));mask-image:radial-gradient(circle at 50% 108%,#000 var(--r),transparent calc(var(--r) + 28%))}
+.letter p{font-family:"Dancing Script",cursive;font-size:1.4rem;line-height:1.5;margin:0 0 .6em;white-space:pre-wrap}
+.letter .to{font-size:1.8rem;color:var(--accent)}
+.letter .from{text-align:right;margin-top:1em}
+.scene{position:relative;display:flex;flex-direction:column;align-items:center;margin-top:-8px}
+.flame{position:relative;width:26px;height:56px;margin-bottom:-4px;border-radius:50% 50% 50% 50%/65% 65% 35% 35%;background:radial-gradient(ellipse at 50% 80%,#fff6c8 0%,#ffc23d 35%,#ff6a1a 75%,transparent 100%);transform-origin:50% 100%;opacity:0;transform:scale(0);transition:opacity .6s,transform .6s;filter:blur(.6px);box-shadow:0 0 40px 18px var(--glow),0 0 90px 40px rgba(255,120,30,.25)}
+.lit .flame{opacity:1;transform:scale(1);animation:flick .18s infinite alternate}
+@keyframes flick{0%{transform:scale(1,1) rotate(-2deg)}50%{transform:scale(.94,1.06) rotate(1.5deg)}100%{transform:scale(1.05,.97) rotate(-1deg)}}
+.wick{width:4px;height:14px;background:#2a1a14;border-radius:2px}
+.candle{width:74px;height:130px;background:linear-gradient(90deg,#f1d6c0,#fff1e4 45%,#e8c3a8);border-radius:6px 6px 10px 10px;box-shadow:inset 0 8px 10px rgba(179,38,74,.25),0 12px 24px rgba(0,0,0,.4);position:relative}
+.candle::after{content:"♥";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--accent);font-size:1.6rem}
+.plate{width:150px;height:14px;background:radial-gradient(ellipse,#d9b36a,#8a6a2a);border-radius:50%;margin-top:-6px}
+button{margin:18px 6px 8px;padding:11px 22px;font:inherit;font-size:1rem;border:0;border-radius:999px;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+details{width:min(92vw,460px);margin-top:14px;font-size:.95rem}
+summary{cursor:pointer;color:var(--accent)}
+label{display:block;margin:10px 0 4px}
+input,textarea{width:100%;padding:9px;border-radius:6px;border:1px solid var(--muted);background:transparent;color:inherit;font:inherit}
+.ember{position:fixed;width:5px;height:5px;border-radius:50%;background:#ffb23d;pointer-events:none;animation:up 2.6s ease-out forwards}
+@keyframes up{to{transform:translate(var(--dx),-180px);opacity:0}}
+</style>
+</head>
+<body>
+<h1>Une lettre pour toi</h1>
+<div class="letter" id="letter"></div>
+<div class="scene">
+  <div class="flame" id="flame"></div>
+  <div class="wick"></div>
+  <div class="candle"></div>
+  <div class="plate"></div>
+</div>
+<div><button id="toggle">🕯️ Allumer la bougie</button></div>
+<details>
+  <summary>Personnaliser la lettre</summary>
+  <label for="to">Pour</label><input id="to" value="Mon pere">
+  <label for="msg">Message</label>
+  <textarea id="msg" rows="6">Depuis que tu es entré(e) dans ma vie, chaque jour a la douceur d’une flamme dans la nuit. Tu éclaires mes silences et tu réchauffes mes doutes.
+
+Cette bougie brûle pour toi, pour tout ce que nous sommes et tout ce que nous serons. Je t’aime, aujourd’hui et pour toujours.</textarea>
+  <label for="from">De</label><input id="from" value="Ta fille">
+</details>
+<script>
+(function(){
+  var letter=document.getElementById('letter'),btn=document.getElementById('toggle'),on=false,r=0,raf=null,timer=null;
+  function esc(s){return s.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function build(){
+    letter.innerHTML='<p class="to">Pour '+esc(document.getElementById('to').value)+',</p><p>'+esc(document.getElementById('msg').value)+'</p><p class="from">— '+esc(document.getElementById('from').value)+' ♥</p>';
+  }
+  function animate(target){
+    cancelAnimationFrame(raf);
+    (function step(){
+      r+=(target-r)*0.025;
+      if(Math.abs(target-r)<0.4)r=target;
+      letter.style.setProperty('--r',r+'%');
+      if(r!==target)raf=requestAnimationFrame(step);
+    })();
+  }
+  function ember(){
+    var e=document.createElement('span'),f=document.getElementById('flame').getBoundingClientRect();
+    e.className='ember';e.style.left=(f.left+f.width/2)+'px';e.style.top=(f.top+10)+'px';
+    e.style.setProperty('--dx',(Math.random()*80-40)+'px');
+    document.body.appendChild(e);setTimeout(function(){e.remove()},2700);
+  }
+  btn.addEventListener('click',function(){
+    on=!on;
+    document.body.classList.toggle('lit',on);
+    btn.textContent=on?'💨 Souffler la bougie':'🕯️ Allumer la bougie';
+    animate(on?130:0);
+    clearInterval(timer);
+    if(on)timer=setInterval(ember,350);
+  });
+  ['to','msg','from'].forEach(function(id){document.getElementById(id).addEventListener('input',build)});
+  build();
+})();
+</script>
+</body>
+</html>
